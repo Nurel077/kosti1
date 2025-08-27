@@ -6,7 +6,7 @@ from data_base import get_balance, add_balance, reduce_balance
 
 TIMEOUT_SECONDS = 60   # время ожидания выбора кнопки
 MIN_BET = 300          # минимальная ставка
-MAX_DAILY_ROULETTE = 10 # максимум игр в день
+MAX_DAILY_ROULETTE = 10000# максимум игр в день
 
 RED_SET = {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36}
 BLACK_SET = {2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35}
