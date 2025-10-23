@@ -3,18 +3,20 @@ from telebot import types
 from confiq import DAILY_FILE, DAILY_REWARD, BOOST_FILE
 from data_base import get_balance, add_balance, load_json, save_json
 from helpers import get_display_name
-
+from admin import is_chat_disabled  # <- импортируем функцию проверки чата
 
 def is_vip(user_id: int) -> bool:
     """Проверка на VIP статус"""
     data = load_json(BOOST_FILE)
     return str(user_id) in data.get("vip", [])
 
-
 def register(bot):
     # ================= START ==================
     @bot.message_handler(commands=['start'])
     def start(message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         get_balance(message.from_user.id)  # создаём баланс если нет
         keyboard = types.InlineKeyboardMarkup(row_width=2)
         keyboard.add(
@@ -34,6 +36,9 @@ def register(bot):
     # ================= HELP ==================
     @bot.message_handler(commands=['help'])
     def help_cmd(message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         if message.chat.type != 'private':
             return
         bot.send_message(
@@ -53,6 +58,9 @@ def register(bot):
 
     # ================= BALANCE ==================
     def send_balance(chat_id, user):
+        if is_chat_disabled(chat_id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         bal = get_balance(user.id)
         name = get_display_name(user)
         if is_vip(user.id):
@@ -65,6 +73,9 @@ def register(bot):
 
     # ================= DAILY ==================
     def process_daily(user_id: str, user_obj, call=None, chat_id=None):
+        if is_chat_disabled(chat_id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         daily_data = load_json(DAILY_FILE)
         today = datetime.now().strftime('%Y-%m-%d')
 
@@ -101,6 +112,9 @@ def register(bot):
 
     # ================= TOP ==================
     def send_top(chat_id):
+        if is_chat_disabled(chat_id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         balances = load_json('balances.json')
         top = sorted(balances.items(), key=lambda x: x[1], reverse=True)[:10]
 
@@ -133,6 +147,9 @@ def register(bot):
 
     # ================= STATUS ==================
     def send_status(chat_id, user):
+        if is_chat_disabled(chat_id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         user_id = user.id
         balance = get_balance(user_id)
         name = get_display_name(user)
@@ -170,6 +187,9 @@ def register(bot):
     # ================= CALLBACK MENU ==================
     @bot.callback_query_handler(func=lambda call: call.data in ["balance", "get_daily", "top", "status"])
     def menu_buttons(call):
+        if is_chat_disabled(call.message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         if call.data == "balance":
             send_balance(call.message.chat.id, call.from_user)
         elif call.data == "get_daily":

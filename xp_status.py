@@ -1,6 +1,7 @@
 from telebot.types import Message
 from data_base import load_json, save_json  # или откуда ты подгружаешь JSON
 from confiq import XP_FILE, STATS_FILE
+from admin import is_chat_disabled  # <- импортируем функцию проверки чата
 
 def add_xp(user_id, amount):
     xp_data = load_json(XP_FILE)
@@ -46,6 +47,9 @@ def get_rank(xp):
 def register(bot):
     @bot.message_handler(commands=['xp'])
     def xp_command(message: Message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         xp = get_xp(message.from_user.id)
         rank = get_rank(xp)
         bot.send_message(
@@ -56,6 +60,9 @@ def register(bot):
 
     @bot.message_handler(commands=['stats'])
     def stats_command(message: Message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         uid = message.from_user.id
         stats = get_stats(uid)
         total = stats["wins"] + stats["losses"]
