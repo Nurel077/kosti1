@@ -1,14 +1,14 @@
 {
   "1298974816": {
-    "wins": 2,
-    "losses": 0,
-    "won": 1200,
-    "lost": 0
+    "wins": 3,
+    "losses": 1,
+    "won": 2200,
+    "lost": 500
   },
   "5360930165": {
-    "wins": 0,
-    "losses": 2,
-    "won": 0,
-    "lost": 600
+    "wins": 1,
+    "losses": 3,
+    "won": 1000,
+    "lost": 1100
   }
 }

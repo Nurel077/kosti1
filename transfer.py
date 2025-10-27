@@ -2,11 +2,14 @@ from telebot import types
 from data_base import get_balance, reduce_balance, add_balance
 from helpers import get_display_name
 from telebot.types import User
-
+from admin import is_chat_disabled  # <- импортируем функцию проверки чата
 
 def register(bot):
     @bot.message_handler(func=lambda msg: msg.reply_to_message and msg.text.lower().startswith("вирты"))
     def transfer_handler(message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         try:
             amount = int(message.text.split()[1])
         except (IndexError, ValueError):
@@ -41,6 +44,9 @@ def register(bot):
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("confirm_transfer:"))
     def confirm_transaction(call):
+        if is_chat_disabled(call.message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         sender_id, receiver_id, amount = map(int, call.data.split(":")[1:])
 
         # Получаем объекты пользователей
@@ -71,6 +77,9 @@ def register(bot):
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("cancel_transfer:"))
     def cancel_transaction(call):
+        if is_chat_disabled(call.message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         bot.answer_callback_query(call.id, text="❌ Транзакция отменена.")
         bot.edit_message_text(
             "❌ Транзакция отменена пользователем.",

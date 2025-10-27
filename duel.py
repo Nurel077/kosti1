@@ -5,16 +5,19 @@ from helpers import get_display_name, can_duel
 from xp_status import add_xp, update_stats, get_rank, get_xp
 import random
 from datetime import datetime
+from admin import is_chat_disabled  # <- импортируем функцию проверки чата
 
 bot = TeleBot(TOKEN)
 
 pending_team_duels = {}
 
-
 def register(bot):
     # Обычные дуэли (1×1)
     @bot.message_handler(func=lambda msg: msg.reply_to_message and msg.text.lower().startswith("кости"))
     def duel_handler(message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         try:
             bet = int(message.text.split()[1])
         except (IndexError, ValueError):
@@ -47,8 +50,11 @@ def register(bot):
 
     # Командные дуэли (2×2)
     @bot.message_handler(
-        func=lambda msg: msg.text and (msg.text.lower().startswith('кости2') or msg.text.lower().startswith('дуэль2')))
+        func=lambda msg: msg.text and (msg.text.lower().startswith('кости2') or msg.text.lower().startswith('дуэль2')) )
     def team_duel_handler(message):
+        if is_chat_disabled(message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         try:
             bet = int(message.text.split()[1])
         except (IndexError, ValueError):
@@ -97,6 +103,9 @@ def register(bot):
     # Обработка командных дуэлей (колбэки)
     @bot.callback_query_handler(func=lambda call: call.data.startswith(("team_join:", "team_start:", "team_cancel:")))
     def team_duel_callback(call):
+        if is_chat_disabled(call.message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         data = call.data.split(":")
         action = data[0]
         arg = data[1] if len(data) > 1 else None
@@ -184,6 +193,9 @@ def register(bot):
     # Обработка обычных дуэлей (колбэки)
     @bot.callback_query_handler(func=lambda call: call.data.startswith(("accept_duel:", "decline_duel:")))
     def handle_duel_response(call):
+        if is_chat_disabled(call.message.chat.id):  # <- проверка чата
+            return  # чат выключен — не выполняем команду
+
         data = call.data.split(":")
         action = data[0]
         player1_id = int(data[1])
