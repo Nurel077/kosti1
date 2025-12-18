@@ -1,0 +1,50 @@
+{
+  "7382098250": {
+    "job": "programmer",
+    "level": 1,
+    "xp": 0,
+    "last_work": 0,
+    "works_today": 0,
+    "last_day": "2025-12-19"
+  },
+  "5360930165": {
+    "job": "schoolboy",
+    "level": 1,
+    "xp": 5,
+    "last_work": 1766086544.2764575,
+    "works_today": 1,
+    "last_day": "2025-12-19"
+  },
+  "7466621835": {
+    "job": "courier",
+    "level": 1,
+    "xp": 8,
+    "last_work": 1766090431.548115,
+    "works_today": 1,
+    "last_day": "2025-12-19"
+  },
+  "5919312462": {
+    "job": "mathematician",
+    "level": 1,
+    "xp": 15,
+    "last_work": 1766090780.5175717,
+    "works_today": 1,
+    "last_day": "2025-12-19"
+  },
+  "856082186": {
+    "job": "mathematician",
+    "level": 1,
+    "xp": 15,
+    "last_work": 1766091004.851605,
+    "works_today": 1,
+    "last_day": "2025-12-19"
+  },
+  "1298974816": {
+    "job": "schoolboy",
+    "level": 1,
+    "xp": 5,
+    "last_work": 1766091557.5660112,
+    "works_today": 1,
+    "last_day": "2025-12-19"
+  }
+}

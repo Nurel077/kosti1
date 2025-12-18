@@ -4,12 +4,41 @@ from confiq import DAILY_FILE, DAILY_REWARD, BOOST_FILE, TEAM_MIN_BET
 from data_base import get_balance, add_balance, load_json, save_json
 from helpers import get_display_name
 
-
 def is_vip(user_id: int) -> bool:
     """Проверка на VIP статус"""
     data = load_json(BOOST_FILE)
     return str(user_id) in data.get("vip", [])
 
+def get_status(user_id: int) -> str:
+    """Определение статуса игрока по балансу и топу"""
+    balance = get_balance(user_id)
+    if is_vip(user_id):
+        return "💎 VIP Игрок"
+    if balance < 1000:
+        return "сельсаяк😶‍🌫️"
+    if balance < 5000:
+        return "новичок🆕"
+    if balance < 10000:
+        return "опытный🎯"
+
+    balances = load_json('balances.json')
+    top = sorted(balances.items(), key=lambda x: x[1], reverse=True)[:10]
+    statuses = [
+        "🥇 Элдин баласы",   # 1
+        "🥈 Боуп кеткен",    # 2
+        "🥉 Жб коюп берем",   # 3
+        "💰 Фасоль брр",     # 4
+        "🎯 Оштук",          # 5
+        "💸 Битир",          # 6
+        "🎲 Апасный",        # 7
+        "🤑 Эми адам болду", # 8
+        "🔥 Мативасия",      # 9
+        "🤞 Бечара"          # 10
+    ]
+    for i, (uid, _) in enumerate(top):
+        if str(user_id) == uid:
+            return statuses[i]
+    return "💪 Профи"
 
 def register(bot):
     # ================= START ==================
@@ -22,6 +51,7 @@ def register(bot):
             types.InlineKeyboardButton("📆 Daily", callback_data="get_daily"),
             types.InlineKeyboardButton("🏆 Топ", callback_data="top"),
             types.InlineKeyboardButton("👤 Статус", callback_data="status"),
+            types.InlineKeyboardButton("🎡 Игры", callback_data="games"),  # Новая кнопка
         )
         bot.send_message(
             message.chat.id,
@@ -104,19 +134,6 @@ def register(bot):
         balances = load_json('balances.json')
         top = sorted(balances.items(), key=lambda x: x[1], reverse=True)[:10]
 
-        statuses = [
-            "🥇 Элдин баласы",   # 1
-            "🥈 Боуп кеткен",    # 2
-            "🥉 Жб коюп берем",   # 3
-            "💰 Фасоль брр",     # 4
-            "🎯 Оштук",          # 5
-            "💸 Битир",          # 6
-            "🎲 Апасный",        # 7
-            "🤑 Эми адам болду", # 8
-            "🔥 Мативасия",      # 9
-            "🤞 Бечара"          # 10
-        ]
-
         text = "🏆 *Топ игроков:*\n\n"
         for i, (user_id, bal) in enumerate(top, 1):
             try:
@@ -129,7 +146,7 @@ def register(bot):
                 name = f"👑✨ {name} ✨👑"
                 status = "💎 VIP Игрок"
             else:
-                status = statuses[i - 1] if bal >= 1000 else "💀 Сельсаяк"
+                status = get_status(int(user_id))  # Используем общую функцию
 
             text += f"{i}. {name}: {bal} Виртов — {status}\n"
 
@@ -147,31 +164,8 @@ def register(bot):
 
         if is_vip(user_id):
             name = f"👑✨ {name} ✨👑"
-            status = "💎 VIP Игрок"
-        else:
-            if balance < 1000:
-                status = "сельсаяк😶‍🌫️"
-            else:
-                balances = load_json('balances.json')
-                top = sorted(balances.items(), key=lambda x: x[1], reverse=True)[:10]
 
-                statuses = [
-                    "🥇 Элдин баласы",   # 1
-                    "🥈 Боуп кеткен",    # 2
-                    "🥉 Жб коюп берем",   # 3
-                    "💰 Фасоль брр",     # 4
-                    "🎯 Оштук",          # 5
-                    "💸 Битир",          # 6
-                    "🎲 Апасный",        # 7
-                    "🤑 Эми адам болду", # 8
-                    "🔥 Мативасия",      # 9
-                    "🤞 Бечара"          # 10
-                ]
-                status = "👤 Игрок"
-                for i, (uid, _) in enumerate(top):
-                    if str(user_id) == uid:
-                        status = statuses[i]
-                        break
+        status = get_status(user_id)  # Используем общую функцию
 
         bot.send_message(
             chat_id,
@@ -183,8 +177,29 @@ def register(bot):
     def status_cmd(message):
         send_status(message.chat.id, message.from_user)
 
+    # ================= GAMES MENU ==================
+    def send_games_menu(chat_id):
+        markup = types.InlineKeyboardMarkup(row_width=1)
+        markup.add(
+            types.InlineKeyboardButton("🪙 Монета (/coin)", callback_data="game_coin"),
+            types.InlineKeyboardButton("🎰 Слоты (/slots)", callback_data="game_slots"),
+            types.InlineKeyboardButton("✂️ КНБ (/rps)", callback_data="game_rps")
+        )
+        bot.send_message(chat_id, "🎡 *Мини-игры:*\nВыберите игру или используйте команды напрямую.", reply_markup=markup, parse_mode="Markdown")
+
+    @bot.callback_query_handler(func=lambda call: call.data.startswith("game_"))
+    def game_menu_callbacks(call):
+        game = call.data.split("_")[1]
+        if game == "coin":
+            bot.send_message(call.message.chat.id, "🪙 Использование: /coin <орёл|решка> <ставка>")
+        elif game == "slots":
+            bot.send_message(call.message.chat.id, "🎰 Использование: /slots <ставка>")
+        elif game == "rps":
+            bot.send_message(call.message.chat.id, "✂️ Использование: /rps <камень|ножницы|бумага> [ставка]")
+        bot.answer_callback_query(call.id)
+
     # ================= CALLBACK MENU ==================
-    @bot.callback_query_handler(func=lambda call: call.data in ["balance", "get_daily", "top", "status"])
+    @bot.callback_query_handler(func=lambda call: call.data in ["balance", "get_daily", "top", "status", "games"])
     def menu_buttons(call):
         if call.data == "balance":
             send_balance(call.message.chat.id, call.from_user)
@@ -194,5 +209,7 @@ def register(bot):
             send_top(call.message.chat.id)
         elif call.data == "status":
             send_status(call.message.chat.id, call.from_user)
-
+        elif call.data == "games":
+            send_games_menu(call.message.chat.id)
         bot.answer_callback_query(call.id)  # закрыть "часики"
+# ...existing code...
